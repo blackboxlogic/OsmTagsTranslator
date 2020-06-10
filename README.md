@@ -3,7 +3,7 @@ Have you ever wanted to run Sql against an `.osm` file? Me neither. But now you 
 
 Use SQLite scripts to transform element tags. Pass it a path to an `.osm` file which has JSON dictionaries and SQL queries in the same folder.
 
-The [Data folder](https://github.com/blackboxlogic/OsmTagsTranslator/tree/master/OsmTagsTranslatorConsole/Data) has a a complete example, including a sample source [osm file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/SampleE911Addresses.osm).
+The [Data folder](https://github.com/blackboxlogic/OsmTagsTranslator/tree/master/OsmTagsTranslatorConsole/Data) has a a complete example, including a sample source [osm file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/SampleE911Addresses.osm) and the [result](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm).
 
 The source file has the fields from Maine's E911 data, not suitable for OSM :frowning_face:
 ```xml
@@ -67,7 +67,7 @@ SELECT
 	WHERE ADDRESS_NUMBER != '0' -- Filter too, because why not?
 ```
 
-Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the resulting file has tags transformed by SQL into the OSM schema
+Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema
 ```xml
 <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
     <tag k='addr:housenumber' v='18' />
