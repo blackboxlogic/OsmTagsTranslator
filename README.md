@@ -1,11 +1,9 @@
 # OsmTagsTranslator
-Have you ever wanted to run Sql against an `.osm` file? Me neither. But now you can!
+## Have you ever wanted to run Sql against an `.osm` file? Me neither. But now you can!
 
 Use SQLite scripts to transform element tags. Pass it a path to an `.osm` file which has JSON dictionaries and SQL queries in the same folder.
 
-The [Data folder](https://github.com/blackboxlogic/OsmTagsTranslator/tree/master/OsmTagsTranslatorConsole/Data) has a a complete example, including a sample source [osm file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/SampleE911Addresses.osm) and the [result](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm).
-
-The source file has the fields from Maine's E911 data, not suitable for OSM :frowning_face:
+[This file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/SampleE911Addresses.osm) has the fields from Maine's E911 data, not suitable for OSM :frowning_face:
 ```xml
 <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
     <tag k='ADDRESS' v='18 Lillian Pl' />
@@ -28,7 +26,7 @@ The source file has the fields from Maine's E911 data, not suitable for OSM :fro
 ```
 
 Every JSON file in the same folder gets loaded as a look-up table like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/Directions.json], which expands `PREDIR` :confused:
-```json
+```javascript
 {
 	"N": "North",
 	"NE": "North East",
@@ -67,7 +65,8 @@ SELECT
 	WHERE ADDRESS_NUMBER != '0' -- Filter too, because why not?
 ```
 
-Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema
+Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm`
+The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema!
 ```xml
 <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
     <tag k='addr:housenumber' v='18' />
@@ -78,3 +77,5 @@ Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the [resul
 </node>
 ```
 :mage::tophat::rabbit2:
+
+The [Data folder](https://github.com/blackboxlogic/OsmTagsTranslator/tree/master/OsmTagsTranslatorConsole/Data) has the complete example.
