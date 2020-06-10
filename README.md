@@ -25,7 +25,7 @@ Use SQLite scripts to transform element tags. Pass it a path to an `.osm` file w
 </node>
 ```
 
-Every JSON file in the same folder gets loaded as a look-up table like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/Directions.json], which expands `PREDIR` :confused:
+Every JSON file in the same folder gets loaded as a look-up table like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/Directions.json), which expands `PREDIR` :confused:
 ```javascript
 {
 	"N": "North",
@@ -66,6 +66,7 @@ SELECT
 ```
 
 Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm`
+
 The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema!
 ```xml
 <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
