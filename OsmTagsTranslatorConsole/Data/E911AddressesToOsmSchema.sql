@@ -11,13 +11,13 @@ SELECT
 			|| COALESCE(' ' || suf.LookupValue, '')
 			|| COALESCE(' ' || post.LookupValue, '') as [addr:street],
 		UNIT as [addr:unit],
-		LANDMARK as [name]
+		LANDMARK as [name] -- Null or empty tags get thrown out
 	FROM Elements
 	-- JSON dictionary files become joinable tables (with the same name) with columns: "LookupKey" and "LookupValue"
 	LEFT JOIN Directions as pre
-		ON UPPER(pre.LookupKey) = UPPER(PREDIR)
+		ON pre.LookupKey = PREDIR
 	LEFT JOIN Directions as post
 		ON post.LookupKey = POSTDIR
 	LEFT JOIN StreetSuffix as suf
 		ON suf.LookupKey = SUFFIX
-	WHERE ADDRESS_NUMBER != '0'
+	WHERE ADDRESS_NUMBER != '0' -- Filter too, because why not?
