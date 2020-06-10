@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Example": {
+      "commandName": "Project",
+      "commandLineArgs": "Data\\SampleE911Addresses.osm"
+    }
+  }
+}

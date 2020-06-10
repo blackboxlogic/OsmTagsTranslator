@@ -1,12 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>OsmTagsTranslator</RootNamespace>
+    <Version>0.0.1</Version>
+    <PackageProjectUrl>https://github.com/blackboxlogic/OsmTagsTranslator</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>OSM;OpenStreetMap</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="OsmSharp" Version="7.0.0-pre014" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.113.1" />
   </ItemGroup>
