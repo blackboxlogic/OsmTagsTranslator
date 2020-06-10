@@ -24,10 +24,10 @@ The source file has the fields from Maine's E911 data, not suitable for OSM :fro
     <tag k='UNIT' v='' />
     <tag k='ZIPCODE' v='04092' />
 	...
-  </node>
+</node>
 ```
 
-Every JSON file in the same folder gets loaded as a look-up table[1](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/Directions.json)[2](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/StreetSUFFIX.json) like this one, which expands `PREDIR` :confused:
+Every JSON file in the same folder gets loaded as a look-up table like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/Directions.json], which expands `PREDIR` :confused:
 ```json
 {
 	"N": "North",
@@ -57,7 +57,7 @@ SELECT
 		UNIT as [addr:unit],
 		LANDMARK as [name] -- Null or empty tags get thrown out
 	FROM Elements
-	-- JSON dictionary files become joinable tables (with the same name) with columns: "LookupKey" and "LookupValue"
+	-- JSON dictionary files become joinable tables (with the same name as the file) with columns: "LookupKey" and "LookupValue"
 	LEFT JOIN Directions as pre
 		ON pre.LookupKey = PREDIR -- These lookup are case-insensitive
 	LEFT JOIN Directions as post
@@ -67,13 +67,14 @@ SELECT
 	WHERE ADDRESS_NUMBER != '0' -- Filter too, because why not?
 ```
 
-Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the resulting file has tags transformed by SQL into the OSM schema :mage::tophat::rabbit2:
+Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm` and the resulting file has tags transformed by SQL into the OSM schema
 ```xml
-    <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
+<node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
     <tag k='addr:housenumber' v='18' />
     <tag k='addr:city' v='Westbrook' />
     <tag k='addr:state' v='ME' />
     <tag k='addr:street' v='East Lillian Place' />
     <tag k='addr:postcode' v='04092' />
-  </node>
+</node>
 ```
+:mage::tophat::rabbit2:
