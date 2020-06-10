@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Example": {
+      "commandName": "Project",
+      "commandLineArgs": "WestbrookE911Addresses.osm"
+    }
+  }
+}
