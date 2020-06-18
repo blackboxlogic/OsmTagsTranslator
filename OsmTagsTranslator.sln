@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmTagsTranslator", "OsmTagsTranslator\OsmTagsTranslator.csproj", "{5A04D612-F302-48DE-AAB6-6C4FF5AD3C10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsmTagsTranslatorConsole", "OsmTagsTranslatorConsole\OsmTagsTranslatorConsole.csproj", "{BD9D93E3-987B-4C68-ABD9-4C960C6CCFF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmTagsTranslatorConsole", "OsmTagsTranslatorConsole\OsmTagsTranslatorConsole.csproj", "{BD9D93E3-987B-4C68-ABD9-4C960C6CCFF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsmTagsTranslator.Tests", "OsmTagsTranslator.Tests\OsmTagsTranslator.Tests.csproj", "{1B27CF2E-7DDF-4A73-AFAE-355D9B57B518}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{BD9D93E3-987B-4C68-ABD9-4C960C6CCFF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD9D93E3-987B-4C68-ABD9-4C960C6CCFF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD9D93E3-987B-4C68-ABD9-4C960C6CCFF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B27CF2E-7DDF-4A73-AFAE-355D9B57B518}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B27CF2E-7DDF-4A73-AFAE-355D9B57B518}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B27CF2E-7DDF-4A73-AFAE-355D9B57B518}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B27CF2E-7DDF-4A73-AFAE-355D9B57B518}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,202 @@
+{
+    "Supermarket": {
+        "shop": "supermarket",
+        "building": "supermarket"
+    },
+    "School": {
+        "building": "school",
+        "amenity": "school"
+    },
+    "MSCommNet Site": {
+        "man_made": "communications_tower"
+    },
+    "Law Enforcement -Municipal": {
+        "amenity": "police"
+    },
+    "Helo Access": {
+        "aeroway": "helipad"
+    },
+    "Residential": {
+        "building": "residential"
+    },
+    "Campground": {
+        "tourism": "camp_site"
+    },
+    "Apartment": {
+        "building": "apartments"
+    },
+    "Law Enforcement - Campus": {},
+    "Law Enforcement - County": {},
+    "Veterinarian": {
+        "amenity": "veterinary"
+    },
+    "Hospital": {
+        "building": "hospital"
+    },
+    "Single Family": {
+        "building": "detached"
+    },
+    "Government - Municipal": {
+        "building": "government"
+    },
+    "Maine Built/CBP Share": {
+        "man_made": "communications_tower",
+        "operator": "Customs and Border Patrol"
+    },
+    "Retail - Free Standing": {
+        "shop": "yes"
+    },
+    "Fire Station": {
+        "amenity": "fire_station"
+    },
+    "Retail - Enclosed Mall": {
+        "building": "retail",
+        "shop": "mall"
+    },
+    "Park": {
+        "leisure": "park"
+    },
+    "Law Enforcement - Military": {},
+    "Mixed Use": {},
+    "Library": {
+        "amenity": "library"
+    },
+    "Convience Store": {
+        "shop": "convenience"
+    },
+    "6": {},
+    "EMS Station": {
+        "emergency": "ambulance_station"
+    },
+    "Law Enforcement - Federal": {},
+    "Financial Institution": {
+        "amenity": "bank"
+    },
+    "Duplex": {
+        "building": "semidetached_house"
+    },
+    "Golf Club": {
+        "leisure": "golf_course"
+    },
+    "Parking": {
+        "amenity": "parking"
+    },
+    "PSAP": {
+        "emergency": "psap"
+    },
+    "Marina": {
+        "leisure": "marina"
+    },
+    "Vacant Lot": {
+        "vacant": "yes"
+    },
+    "Tower": {
+        "man_made": "communications_tower"
+    },
+    "Military": {
+        "landuse": "military"
+    },
+    "Service Station": {
+        "amenity": "fuel"
+    },
+    "MSCommNet Corrections": {},
+    "Dealership": {
+        "shop": "car"
+    },
+    "": {},
+    "Vacant": {
+        "vacant": "yes"
+    },
+    "College - University": {},
+    "Lodging": {},
+    "Pharmacy": {
+        "amenity": "pharmacy"
+    },
+    "Ambulance Service": {
+        "emergency": "ambulance_station"
+    },
+    "Law Enforcement - Tribal": {},
+    "Apartments": {
+        "building": "apartments"
+    },
+    "Cemetery": {
+        "amenity": "grave_yard"
+    },
+    "Mobile Home": {
+        "building": "static_caravan"
+    },
+    "Office": {
+        "building": "office"
+    },
+    "Condominium": {
+        "building": "apartments"
+    },
+    "Industrial": {
+        "landuse": "industrial"
+    },
+    "Seasonal": {},
+    "Post Office": {
+        "amenity": "post_office"
+    },
+    "Government - Federal": {},
+    "Retail - Strip Mall": {
+        "building": "retail",
+        "shop": "mall"
+    },
+    "Utility": {
+        "building": "service"
+    },
+    "Public Health Office": {},
+    "Nursing Home": {
+        "amenity": "nursing_home"
+    },
+    "Government - State": {},
+    "Boat Landing": {
+        "leisure": "slipway"
+    },
+    "Mobile Home Park": {},
+    "CBP Built/Maine Share": {},
+    "Health Care": {
+        "amenity": "healthcare"
+    },
+    "County EMA": {},
+    "Other": {},
+    "Airport": {
+        "aeroway": "aerodrome"
+    },
+    "Comercial": {
+        "building": "commercial"
+    },
+    "Multi Family": {
+        "building": "apartments"
+    },
+    "Civic Center": {
+        "amenity": "community_centre"
+    },
+    "Arena": {
+        "leisure": "sports_centre"
+    },
+    "Church": {
+        "building": "church"
+    },
+    "Sports Complex": {
+        "leisure": "sports_centre"
+    },
+    "Law Enforcement - State": {},
+    "Attraction": {
+        "tourism": "attraction"
+    },
+    "Government - County": {},
+    "Commercial": {
+        "building": "commercial"
+    },
+    "Restaurant": {
+        "amenity": "restaurant"
+    },
+	"Solar Site": {
+		"power": "plant",
+		"plant:source": "solar",
+		"plant:method": "photovoltaic",
+		"plant:output:electricity": "yes"
+	}
+}

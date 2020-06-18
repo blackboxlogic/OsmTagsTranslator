@@ -7,30 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\E911AddressesToOsmSchema.sql+SampleE911Addresses.osm" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\OsmTagsTranslator\OsmTagsTranslator.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Data\Directions.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\E911AddressesToOsmSchema.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\StreetSUFFIX.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\SampleE911Addresses.osm">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

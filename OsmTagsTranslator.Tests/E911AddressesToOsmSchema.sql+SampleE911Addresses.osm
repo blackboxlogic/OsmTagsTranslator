@@ -1,0 +1,19 @@
+<osm version="0.6">
+	<node id="-101753" lat="43.73086183589" lon="-70.33776262438">
+		<tag k="addr:housenumber" v="18" />
+		<tag k="addr:city" v="Westbrook" />
+		<tag k="addr:postcode" v="04092" />
+		<tag k="addr:state" v="ME" />
+		<tag k="addr:street" v="Lillian" />
+		<tag k="name" v="Westbrook Fire Department" />
+		<tag k="amenity" v="fire_station" />
+	</node>
+	<node id="-101754" lat="43.73048892408" lon="-70.33808336345">
+		<tag k="addr:housenumber" v="24" />
+		<tag k="addr:city" v="Westbrook" />
+		<tag k="addr:postcode" v="04092" />
+		<tag k="addr:state" v="ME" />
+		<tag k="addr:street" v="Lillian" />
+		<tag k="addr:unit" v="1" />
+	</node>
+</osm>
