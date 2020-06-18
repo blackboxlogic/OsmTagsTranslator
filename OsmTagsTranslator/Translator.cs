@@ -26,6 +26,8 @@ namespace OsmTagsTranslator
 			Connection = CreateDatabase(@"test.sqlite");
 			Connection.Open();
 
+			if (source.Any(e => e.Id == null)) throw new Exception("All elements must have an id");
+
 			var columns = Source.Where(e => e.Tags != null)
 				.SelectMany(e => e.Tags)
 				.GroupBy(t => t.Key)
@@ -124,8 +126,8 @@ namespace OsmTagsTranslator
 		{
 			using (var com = Connection.CreateCommand())
 			{
-				var columnCode = string.Join(", ", columns.Select(k => $"[{k.Key}] varchar({k.Value})"));
-				var primaryKey = string.Join(", ", columns.Take(keyCount).Select(kvp => kvp.Key + " COLLATE NOCASE"));
+				var columnCode = string.Join(", ", columns.Select(k => $"[{k.Key}] varchar({k.Value}) COLLATE NOCASE"));
+				var primaryKey = string.Join(", ", columns.Take(keyCount).Select(kvp => "[" + kvp.Key + "]"));
 				com.CommandText = $"CREATE TABLE [{name}] ({columnCode}, PRIMARY KEY({primaryKey}))";
 				com.ExecuteNonQuery();
 			}
@@ -150,7 +152,7 @@ namespace OsmTagsTranslator
 					i++;
 				}
 
-				com.CommandText = $"INSERT INTO {table} ({string.Join(", ", keys)}) VALUES ({string.Join(", ", values)});";
+				com.CommandText = $"INSERT INTO [{table}] ({string.Join(", ", keys)}) VALUES ({string.Join(", ", values)});";
 				com.ExecuteNonQuery();
 			}
 		}

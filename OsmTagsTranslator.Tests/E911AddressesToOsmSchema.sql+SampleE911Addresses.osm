@@ -4,7 +4,7 @@
 		<tag k="addr:city" v="Westbrook" />
 		<tag k="addr:postcode" v="04092" />
 		<tag k="addr:state" v="ME" />
-		<tag k="addr:street" v="Lillian" />
+		<tag k="addr:street" v="Lillian Place" />
 		<tag k="name" v="Westbrook Fire Department" />
 		<tag k="amenity" v="fire_station" />
 	</node>
@@ -13,7 +13,7 @@
 		<tag k="addr:city" v="Westbrook" />
 		<tag k="addr:postcode" v="04092" />
 		<tag k="addr:state" v="ME" />
-		<tag k="addr:street" v="Lillian" />
+		<tag k="addr:street" v="Lillian Place" />
 		<tag k="addr:unit" v="1" />
 	</node>
 </osm>

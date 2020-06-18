@@ -4,10 +4,14 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>OsmTagsTranslator</RootNamespace>
-    <Version>0.0.1</Version>
+    <Version>0.0.1-alpha</Version>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmTagsTranslator</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>OSM;OpenStreetMap</PackageTags>
+    <Description>Use SQLite scripts to transform OSM element tags. Profide an element source, lookup tables, and your sqlite query. Get back elements with transformed tags.</Description>
+    <PackageReleaseNotes>Alpha</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/blackboxlogic/OsmTagsTranslator</RepositoryUrl>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +30,7 @@
     <None Update="Lookups\StreetSuffixes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Translations\E911AddressesToOsmSchema.sql">
+    <None Update="Queries\E911AddressesToOsmSchema.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
