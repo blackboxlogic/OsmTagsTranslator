@@ -13,43 +13,64 @@ namespace OsmTagsTranslator
 {
 	public class Translator : IDisposable
 	{
-		private OsmGeo[] Source;
-		private IDbConnection Connection;
+		private const string LookupId = "ID";
+		private const string LookupValue = "Value";
+		private const string ElementKeyId = "xID";
+		private const string ElementKeyType = "xType";
+		private const string ElementTableName = "Elements";
+		private const string DatabaseFile = "OsmSql.sqlite";
 
-		public Translator(string pathToOsmFile)
-			: this(new XmlOsmStreamSource(File.OpenRead(pathToOsmFile)))
-		{ }
+		private readonly IDbConnection Connection;
+		private readonly IEnumerable<OsmGeo> Source;
+		private readonly bool DisposeTheSource;
 
-		public Translator(IEnumerable<OsmGeo> source)
+
+		/// <param name="allowMixedCaseKeys">
+		/// Set this TRUE if any of your tag keys have inconsistant capitalization and
+		/// you're ok with them being treated as equivalent
+		/// ("Name" and "name" will be treated as the same tag). Leave this FALSE (default)
+		/// if you know your elements don't have inconsistant tag key capitalization.
+		/// </param>
+		public Translator(string pathToOsmFile, bool allowMixedCaseKeys = false)
+			: this(new XmlOsmStreamSource(File.OpenRead(pathToOsmFile)), allowMixedCaseKeys)
+		{
+			DisposeTheSource = true;
+		}
+
+		/// <param name="allowMixedCaseKeys">
+		/// Set this TRUE if any of your tag keys have inconsistant capitalization and
+		/// you're ok with them being treated as equivalent
+		/// ("Name" and "name" will be treated as the same tag). Leave this FALSE (default)
+		/// if you know your elements don't have inconsistant tag key capitalization.
+		/// </param>
+		public Translator(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys = false)
 		{
 			Source = source.ToArray();
-			Connection = CreateDatabase(@"test.sqlite");
+			Connection = CreateDatabase(DatabaseFile);
 			Connection.Open();
+			var columns = GetTags(Source, allowMixedCaseKeys);
+			ImportElements(Source, columns);
+		}
+
+		private Dictionary<string, int> GetTags(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys)
+		{
+			var tagGroups = source.Where(e => e.Tags != null)
+				.SelectMany(e => e.Tags)
+				.GroupBy(t => t.Key, StringComparer.OrdinalIgnoreCase);
 
 			if (source.Any(e => e.Id == null)) throw new Exception("All elements must have an id");
 
-			var columns = Source.Where(e => e.Tags != null)
-				.SelectMany(e => e.Tags)
-				.GroupBy(t => t.Key)
-				.ToDictionary(g => g.Key,
-					g => Math.Max(1, g.Max(t => t.Value.Length)))
-				.Prepend(new KeyValuePair<string, int>("Type", 8))
-				.Prepend(new KeyValuePair<string, int>("ID", 19));
-
-			CreateTable("Elements", columns, 2);
-
-			foreach (var element in Source)
+			if (!allowMixedCaseKeys)
 			{
-				InsertRecord("Elements", AsFields(element));
+				var mixedCase = tagGroups.Select(g => g.Select(g => g.Key).Distinct().ToArray()).Where(g => g.Length > 1).ToArray();
+
+				if (mixedCase.Any())
+				{
+					throw new Exception("Tag keys have inconsistant capitalization: " + string.Join(", ", mixedCase.SelectMany(k => k)));
+				}
 			}
-		}
 
-		public OsmGeo[] Transform(string sql)
-		{
-			var tagsCollections = QueryElements(sql);
-			var transformed = ApplyTags(Source, tagsCollections);
-
-			return transformed;
+			return tagGroups.ToDictionary(g => g.Key, g => Math.Max(1, g.Max(t => t.Value.Length)));
 		}
 
 		private static SQLiteConnection CreateDatabase(string path)
@@ -63,6 +84,32 @@ namespace OsmTagsTranslator
 				JournalMode = SQLiteJournalModeEnum.Off
 			};
 			return new SQLiteConnection(builder.ToString());
+		}
+
+		private void ImportElements(IEnumerable<OsmGeo> source, Dictionary<string, int> tags)
+		{
+			var columns = tags
+				.Prepend(new KeyValuePair<string, int>(ElementKeyType, 8))
+				.Prepend(new KeyValuePair<string, int>(ElementKeyId, 19));
+
+			CreateTable(ElementTableName, columns, 2);
+
+			var count = source.Count();
+			var soFar = 0;
+			foreach (var element in source)
+			{
+				InsertRecord(ElementTableName, AsFields(element));
+				soFar++;
+				if (soFar % 1000 == 0) Console.WriteLine(soFar + "/" + count);
+			}
+		}
+
+		public OsmGeo[] QueryElements(string sql)
+		{
+			var tagsCollections = QueryTags(sql);
+			var transformed = ApplyTags(Source, tagsCollections);
+
+			return transformed;
 		}
 
 		public void AddLookup(string path)
@@ -91,12 +138,12 @@ namespace OsmTagsTranslator
 		{
 			var keyLength = lookup.Keys.Max(k => k.Length);
 			var columns = lookup.SelectMany(d => d.Value).GroupBy(kvp => kvp.Key).ToDictionary(g => g.Key, g => g.Max(kvp => kvp.Value.Length))
-				.Prepend(new KeyValuePair<string, int>("ID", keyLength));
+				.Prepend(new KeyValuePair<string, int>(LookupId, keyLength));
 			CreateTable(name, columns);
 
 			foreach (var record in lookup)
 			{
-				record.Value.Add("ID", record.Key);
+				record.Value.Add(LookupId, record.Key);
 				InsertRecord(name, record.Value);
 			}
 		}
@@ -105,8 +152,8 @@ namespace OsmTagsTranslator
 		{
 			var columns = new Dictionary<string, int>()
 			{
-				{ "ID", lookup.Keys.Max(k => k.Length) },
-				{ "Value", lookup.Values.Max(k => k.Length) }
+				{ LookupId, lookup.Keys.Max(k => k.Length) },
+				{ LookupValue, lookup.Values.Max(k => k.Length) }
 			}.OrderBy(kvp => kvp.Key);
 
 			CreateTable(name, columns);
@@ -115,8 +162,8 @@ namespace OsmTagsTranslator
 			{
 				var fields = new Dictionary<string, string>()
 				{
-					{ "ID", record.Key },
-					{ "Value", record.Value }
+					{ LookupId, record.Key },
+					{ LookupValue, record.Value }
 				};
 				InsertRecord(name, fields);
 			}
@@ -159,43 +206,50 @@ namespace OsmTagsTranslator
 
 		private Dictionary<string, string> AsFields(OsmGeo element)
 		{
-			var fields = element.Tags.ToDictionary(t => t.Key, t => t.Value);
-			fields.Add("ID", element.Id.ToString());
-			fields.Add("Type", element.Type.ToString());
+			var fields = element.Tags?.ToDictionary(t => t.Key, t => t.Value) ?? new Dictionary<string, string>();
+			fields.Add(ElementKeyId, element.Id.ToString());
+			fields.Add(ElementKeyType, element.Type.ToString());
 			return fields;
 		}
 
-		private Dictionary<OsmGeoKey, TagsCollection> QueryElements(string query)
+		private Dictionary<OsmGeoKey, TagsCollection> QueryTags(string sql)
 		{
 			var results = new Dictionary<OsmGeoKey, TagsCollection>();
+			var records = Query(sql).ToArray();
+			var keys = records[0];
 
-			using (var com = Connection.CreateCommand())
+			if (string.Join(",", keys.Take(2)).ToLower() != $"{ElementKeyId},{ElementKeyType}".ToLower())
+				throw new Exception($"The first two field in the query must be [{ElementTableName}.{ElementKeyId}] and [{ElementTableName}.{ElementKeyType}].");
+
+			foreach(var record in records.Skip(1))
 			{
-				com.CommandText = query;
-
-				using (IDataReader reader = com.ExecuteReader())
-				{
-					var keys = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
-					if (!string.Equals(keys[0], "ID", StringComparison.OrdinalIgnoreCase)
-						|| !string.Equals(keys[1], "Type", StringComparison.OrdinalIgnoreCase))
-					{
-						throw new Exception("The first two field in the query must be [id] and [type].");
-					}
-
-					while (reader.Read())
-					{
-						var values = GetValues(reader, reader.FieldCount);
-						var tags = Enumerable.Range(2, reader.FieldCount - 2)
-							.Where(i => !string.IsNullOrEmpty(values[i]) && keys[i] != "ID")
-							.Select(i => new Tag(keys[i], values[i]));
-						var tagsCollection = new TagsCollection(tags);
-						var osmGeoKey = new OsmGeoKey((OsmGeoType)Enum.Parse(typeof(OsmGeoType), values[1]), long.Parse(values[0]));
-						results.Add(osmGeoKey, tagsCollection);
-					}
-				}
+				var osmGeoKey = new OsmGeoKey((OsmGeoType)Enum.Parse(typeof(OsmGeoType), record[1]), long.Parse(record[0]));
+				var tags = Enumerable.Range(2, record.Length - 2)
+					.Where(i => !string.IsNullOrEmpty(record[i]) && keys[i] != LookupId)
+					.Select(i => new Tag(keys[i], record[i]));
+				var tagsCollection = new TagsCollection(tags);
+				results.Add(osmGeoKey, tagsCollection);
 			}
 
 			return results;
+		}
+
+		// first record is column names
+		public IEnumerable<string[]> Query(string sql)
+		{
+			using (var com = Connection.CreateCommand())
+			{
+				com.CommandText = sql;
+				using (IDataReader reader = com.ExecuteReader())
+				{
+					yield return Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+
+					while (reader.Read())
+					{
+						yield return GetValues(reader, reader.FieldCount);
+					}
+				}
+			}
 		}
 
 		private static string[] GetValues(IDataReader reader, int fieldCount)
@@ -207,6 +261,7 @@ namespace OsmTagsTranslator
 			for (int i = 0; i < fieldCount; i++)
 			{
 				if (values[i] is string s) strings[i] = s;
+				else if (values[i] is long num) strings[i] = num.ToString();
 			}
 
 			return strings;
@@ -230,9 +285,16 @@ namespace OsmTagsTranslator
 			return results.ToArray();
 		}
 
+		public static Dictionary<K, T[]> ToDictionary<T, K>(IEnumerable<IGrouping<K, T>> groups)
+		{
+			return groups.ToDictionary(g => g.Key, g => g.ToArray());
+		}
+
 		public void Dispose()
 		{
+			if (DisposeTheSource) ((IDisposable)Source).Dispose();
 			Connection.Dispose();
+			File.Delete(DatabaseFile);
 		}
 	}
 }

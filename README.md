@@ -42,8 +42,8 @@ Every JSON file in the same folder gets loaded as a look-up table like [this one
 Write a [SQLite transformation](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql) :open_mouth:
 ```sql
 SELECT
-		id, -- Required first column
-		type, -- Required second column
+		xid, -- Required first column
+		xtype, -- Required second column
 		ADDRESS_NUMBER as [addr:housenumber], -- Every other column becomes a tag with that name
 		POSTAL_COMMUNITY as [addr:city],
 		ZIPCODE as [addr:postcode],
@@ -67,7 +67,7 @@ SELECT
 
 Run > `OsmTagsTranslatorConsole.exe Data\SampleE911Addresses.osm`
 
-The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema!
+The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslatorConsole/Data/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) has tags transformed by SQL into the OSM schema! :mage::tophat::rabbit2:
 ```xml
 <node id='-101753' lat='43.73086183589' lon='-70.33776262438'>
     <tag k='addr:housenumber' v='18' />
@@ -77,6 +77,5 @@ The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/mas
     <tag k='addr:postcode' v='04092' />
 </node>
 ```
-:mage::tophat::rabbit2:
 
 The [Data folder](https://github.com/blackboxlogic/OsmTagsTranslator/tree/master/OsmTagsTranslatorConsole/Data) has the complete example.

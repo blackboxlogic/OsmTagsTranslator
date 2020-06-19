@@ -27,11 +27,11 @@ namespace OsmTagsTranslator.Tests
 				var lookup = new Dictionary<string, string>() { { "matched", "matched" }, { "unmatched", "unmatched" }};
 				translator.AddLookup("case", lookup);
 				var query =
-@"select elements.id, elements.type, matched.value as matched, unmatched.value as unmatched
+@"select elements.xid, elements.xtype, matched.value as matched, unmatched.value as unmatched
 	from elements
-	left join [case] as matched on matched.id = elements.matched 
-	left join [case] as unmatched on unmatched.id = elements.unmatched ";
-				var result = translator.Transform(query);
+	left join [case] as matched on matched.id = elements.matched
+	left join [case] as unmatched on unmatched.id = elements.unmatched";
+				var result = translator.QueryElements(query);
 				Assert.AreEqual(result.Single().Tags.Count, 2);
 			}
 		}
@@ -50,7 +50,7 @@ namespace OsmTagsTranslator.Tests
 				var sqlFile = "Queries\\E911AddressesToOsmSchema.sql";
 				var expectedFile = "E911AddressesToOsmSchema.sql+SampleE911Addresses.osm";
 
-				var results = translator.Transform(File.ReadAllText(sqlFile));
+				var results = translator.QueryElements(File.ReadAllText(sqlFile));
 				var expecteds = new XmlOsmStreamSource(File.OpenRead(expectedFile)).ToArray();
 
 				Assert.AreEqual(results.Length, expecteds.Length);

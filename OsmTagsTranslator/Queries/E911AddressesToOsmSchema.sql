@@ -1,7 +1,7 @@
 -- Executes SQLite
 SELECT
-		Elements.id, -- Required first column
-		Elements.type, -- Required second column
+		Elements.xid, -- Required first column
+		Elements.xtype, -- Required second column
 		Elements.ADDRESS_NUMBER as [addr:housenumber], -- Every other column becomes a tag with that name
 		POSTAL_COMMUNITY as [addr:city],
 		ZIPCODE as [addr:postcode],
