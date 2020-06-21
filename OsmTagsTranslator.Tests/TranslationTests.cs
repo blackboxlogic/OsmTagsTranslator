@@ -37,6 +37,17 @@ namespace OsmTagsTranslator.Tests
 		}
 
 		[TestMethod]
+		public void NonElementQueries()
+		{
+			using (Translator translator = new Translator(new[] { new Node() { Id = -1 }, new Node() { Id = -2 } }))
+			{
+				var query = @"select count(1) as count from elements where xid = -1";
+				var result = translator.Query(query);
+				CollectionAssert.AreEqual(new[] { "count", "1" }, result.SelectMany(s => s).ToArray());
+			}
+		}
+
+		[TestMethod]
 		public void FullTranslateAddresses()
 		{
 			var sourceFile = "SampleE911Addresses.osm";

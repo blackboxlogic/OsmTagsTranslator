@@ -96,11 +96,17 @@ namespace OsmTagsTranslator
 
 			var count = source.Count();
 			var soFar = 0;
-			foreach (var element in source)
+
+			using (var com = Connection.CreateCommand())
 			{
-				InsertRecord(ElementTableName, AsFields(element));
-				soFar++;
-				if (soFar % 1000 == 0) Console.WriteLine(soFar + "/" + count);
+				using (var transaction = Connection.BeginTransaction())
+				{
+					foreach (var element in source)
+					{
+						InsertRecord(ElementTableName, AsFields(element), com);
+					}
+					transaction.Commit();
+				}
 			}
 		}
 
@@ -141,10 +147,13 @@ namespace OsmTagsTranslator
 				.Prepend(new KeyValuePair<string, int>(LookupId, keyLength));
 			CreateTable(name, columns);
 
-			foreach (var record in lookup)
+			using (var com = Connection.CreateCommand())
 			{
-				record.Value.Add(LookupId, record.Key);
-				InsertRecord(name, record.Value);
+				foreach (var record in lookup)
+				{
+					record.Value.Add(LookupId, record.Key);
+					InsertRecord(name, record.Value, com);
+				}
 			}
 		}
 
@@ -157,15 +166,17 @@ namespace OsmTagsTranslator
 			}.OrderBy(kvp => kvp.Key);
 
 			CreateTable(name, columns);
-
-			foreach (var record in lookup)
+			using (var com = Connection.CreateCommand())
 			{
-				var fields = new Dictionary<string, string>()
+				foreach (var record in lookup)
+				{
+					var fields = new Dictionary<string, string>()
 				{
 					{ LookupId, record.Key },
 					{ LookupValue, record.Value }
 				};
-				InsertRecord(name, fields);
+					InsertRecord(name, fields, com);
+				}
 			}
 		}
 
@@ -180,28 +191,26 @@ namespace OsmTagsTranslator
 			}
 		}
 
-		private void InsertRecord(string table, Dictionary<string, string> fields)
+		private void InsertRecord(string table, Dictionary<string, string> fields, IDbCommand com)
 		{
-			using (var com = Connection.CreateCommand())
+			var keys = new List<string>();
+			var values = new List<string>();
+			int i = 0;
+
+			com.Parameters.Clear();
+			foreach (var field in fields)
 			{
-				var keys = new List<string>();
-				var values = new List<string>();
-				int i = 0;
-
-				foreach (var field in fields)
-				{
-					var parameter = com.CreateParameter();
-					parameter.ParameterName = "@p" + i;
-					parameter.Value = field.Value;
-					com.Parameters.Add(parameter);
-					values.Add($"@p" + i);
-					keys.Add($"[{field.Key}]");
-					i++;
-				}
-
-				com.CommandText = $"INSERT INTO [{table}] ({string.Join(", ", keys)}) VALUES ({string.Join(", ", values)});";
-				com.ExecuteNonQuery();
+				var parameter = com.CreateParameter();
+				parameter.ParameterName = "@p" + i;
+				parameter.Value = field.Value;
+				com.Parameters.Add(parameter);
+				values.Add($"@p" + i);
+				keys.Add($"[{field.Key}]");
+				i++;
 			}
+
+			com.CommandText = $"INSERT INTO [{table}] ({string.Join(", ", keys)}) VALUES ({string.Join(", ", values)});";
+			com.ExecuteNonQuery();
 		}
 
 		private Dictionary<string, string> AsFields(OsmGeo element)
