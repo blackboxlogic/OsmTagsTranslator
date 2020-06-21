@@ -1,0 +1,51 @@
+{
+    "Primary": {
+        "highway": "motorway"
+    },
+    "Crossover": {
+        "highway": "service",
+        "service": "emergency_access",
+        "emergency": "designated",
+        "access": "no"
+    },
+    "Ramp": {
+        "highway": "motorway_link"
+    },
+    "Secondary": {
+        "highway": "trunk"
+    },
+    "Local": {
+        "highway": "residential"
+    },
+    "Service": {
+        "highway": "service"
+    },
+    "Alley": {
+        "highway": "service",
+        "service": "alley"
+    },
+    "Gated": {
+        "highway": "service",
+        "access": "private"
+    },
+    "Private": {
+        "highway": "service",
+        "access": "permissive",
+        "owernship": "private"
+    },
+    "Vehicular Trail": {
+        "highway": "track"
+    },
+    "Trail": {
+        "highway": "path"
+    },
+    "Walkway": {
+        "highway": "footway"
+    },
+    "Other": {
+        "highway": "road"
+    },
+    "Paper Street": {
+        "highway": "proposed"
+    }
+}
