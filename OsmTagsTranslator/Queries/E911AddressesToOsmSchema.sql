@@ -1,26 +1,32 @@
--- Executes SQLite
 SELECT
-		Elements.xid, -- Required first column
-		Elements.xtype, -- Required second column
-		Elements.ADDRESS_NUMBER as [addr:housenumber], -- Every other column becomes a tag with that name
-		POSTAL_COMMUNITY as [addr:city],
-		ZIPCODE as [addr:postcode],
-		STATE as [addr:state],
-		COALESCE(pre.value || ' ', '')
-			|| STREETNAME
-			|| COALESCE(' ' || suf.value, '')
-			|| COALESCE(' ' || post.value, '') as [addr:street],
+		-- These first two columns are required to identify the element
+		xid,
+		xtype,
+		-- Every other column becomes a tag
+		-- Some tags just need their key changed
+		ADDRESS_NUMBER as [addr:housenumber],
 		UNIT as [addr:unit],
-		LANDMARK as [name], -- Null or empty tags get thrown out
-		placeTags.*
+		-- Other tags need lookups and string manipulation
+		COALESCE(pre.Value || ' ', '')
+			|| COALESCE(STREETNAME, '')
+			|| COALESCE(' ' || suf.Value, '')
+			|| COALESCE(' ' || post.Value, '') as [addr:street],
+		POSTAL_COMMUNITY as [addr:city],
+		STATE as [addr:state],
+		ZIPCODE as [addr:postcode],
+		-- Null or empty fields don't become tags
+		LANDMARK as [name],
+		-- Arbitrary tags can be added from more complicated lookup tables
+		moreDetails.*
 	FROM Elements
-	-- JSON dictionary files become joinable tables (with the same name) with columns: "id" and "value"
+	-- Lookup are case-insensitive
 	LEFT JOIN Directions as pre
-		ON pre.id = PREDIR
+		ON pre.ID = PREDIR
 	LEFT JOIN Directions as post
-		ON post.id = POSTDIR
-	LEFT JOIN StreetSuffixes as suf
-		ON suf.id = SUFFIX
-	LEFT JOIN PlaceTypes as placeTags
-		ON placeTags.id = PLACE_TYPE
-	WHERE ADDRESS_NUMBER != '0' -- Filter too, because why not?
+		ON post.ID = POSTDIR
+	LEFT JOIN StreetSuffix as suf
+		ON suf.ID = SUFFIX
+	LEFT JOIN PlaceTypes as moreDetails
+		ON moreDetails.id = PLACE_TYPE
+	-- Filter too, if you'd like. Those elements won't be in the result
+	WHERE ADDRESS_NUMBER != '0'
