@@ -24,7 +24,7 @@ SELECT
 		ON pre.ID = PREDIR
 	LEFT JOIN Directions as post
 		ON post.ID = POSTDIR
-	LEFT JOIN StreetSuffix as suf
+	LEFT JOIN StreetSuffixes as suf
 		ON suf.ID = SUFFIX
 	LEFT JOIN PlaceTypes as moreDetails
 		ON moreDetails.id = PLACE_TYPE
