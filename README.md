@@ -1,7 +1,7 @@
 # OsmTagsTranslator
 ## Do you need to convert third party data into OpenStreetMap tags, but your programming language is clunky? This tool lets you express OSM tag transformations as SQLite queries.
 
-[This file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/SampleE911Addresses.osm) has the address fields from Maine's department of transportation. These tags are not suitable for OSM :frowning_face:
+[This file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/SampleE911Addresses.osm) has the address fields from Maine's department of transportation. These tags are not suitable for OSM :unamused:
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6'>
@@ -22,7 +22,7 @@
 </osm>
 ```
 
-To be ready for OSM, each tag needs to change. For example, `addr:street=East Lillian Place` must be composed from { `PREDIR=E`, `STREETNAME=Lillian`, `SUFFIX=Pl`}. We can express this, and transformations for each other tag, using a [SQLite query](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Queries/E911AddressesToOsmSchema.sql) :confused:
+Each tag needs some work. For example, `addr:street=East Lillian Place` must be composed from { `PREDIR=E`, `STREETNAME=Lillian`, `SUFFIX=Pl`}. We can express these transformations using a [SQLite query](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Queries/E911AddressesToOsmSchema.sql) :open_mouth:
 ```sql
 SELECT
 		-- These first two columns are required to identify elements
@@ -58,7 +58,7 @@ SELECT
 	WHERE ADDRESS_NUMBER != '0'
 ```
 
-JSON files can be loaded as tables with columns: "ID" and "Value" like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/StreetSuffixes.json), which expands `SUFFIX=Pl` into `Place`
+JSON files can be loaded as tables with columns "ID" and "Value", like [this one](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/StreetSuffixes.json), which expands `SUFFIX=Pl` into `Place` :relieved:
 ```javascript
 {
 	...
@@ -76,7 +76,7 @@ JSON files can be loaded as tables with columns: "ID" and "Value" like [this one
 
 Run `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm Lookups\Directions.json Lookups\StreetSuffixes.json Lookups\PlaceTypes.json Quieries\E911AddressesToOsmSchema.sql`
 
-The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) is transformed into OSM Tags! :mage::tophat::rabbit2:
+The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/E911AddressesToOsmSchema.sql%2BSampleE911Addresses.osm) is transformed into OSM conformant tags! :mage::tophat::rabbit2:
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6'>
@@ -92,9 +92,7 @@ The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/mas
 </osm>
 ```
 
-This project is an executable, interactive command line tool, and a nuget package.
-
-Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis
+This project is an executable, interactive command line tool, and a nuget package. Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis
 ```SQL
 SELECT POSTAL_COMMUNITY, count(1) FROM Elements GROUP BY POSTAL_COMMUNITY ORDER BY 2 DESC
 ```

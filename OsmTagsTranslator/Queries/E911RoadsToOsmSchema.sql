@@ -1,4 +1,4 @@
--- This is an example transofrmation, designed for Maine's E911 road dataset.
+-- This is an example transformation, designed for Maine's E911 road dataset.
 
 -- Data Corrections, these could be separated out
 Update elements set route_num = '' where route_num = '0';
