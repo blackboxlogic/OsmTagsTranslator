@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using OsmSharp;
 using OsmSharp.API;
-using OsmSharp.Db;
-using OsmSharp.Db.Impl;
 using OsmSharp.IO.Xml;
 using OsmSharp.Streams;
 using OsmTagsTranslator;
@@ -17,7 +15,9 @@ namespace Example
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Starting...");
-			var osmFile = args.Single(a => a.EndsWith(".osm") || a.EndsWith(".pbf"));
+			var osmFile = args.SingleOrDefault(a => a.EndsWith(".osm") || a.EndsWith(".pbf"));
+
+			if (osmFile == null) PrintUsage();
 
 			using (var osm = OpenFile(osmFile))
 			using (var translator = new Translator(osm, true))
@@ -27,20 +27,32 @@ namespace Example
 					translator.AddLookup(json);
 				}
 
-				var sql = args.SingleOrDefault(a => a.EndsWith(".sql"));
+				var sql = args.SingleOrDefault(a => a.EndsWith(".sql") || a.EndsWith(".sqlite"));
 				if (sql != null)
 				{
-					var elements = translator.QueryElements(File.ReadAllText(sql));
-					var index = OsmSharp.Db.Impl.Extensions.CreateSnapshotDb(new MemorySnapshotDb(osm));
-					var result = AsOsm(WithChildren(elements, index));
+					var elements = args.Contains("-KeepAllElements", StringComparer.OrdinalIgnoreCase)
+						? translator.QueryElementsKeepAll(File.ReadAllText(sql))
+						: args.Contains("-KeepChildrenElements", StringComparer.OrdinalIgnoreCase)
+							? translator.QueryElementsWithChildren(File.ReadAllText(sql))
+							: translator.QueryElements(File.ReadAllText(sql));
+					var asOsm = AsOsm(elements);
 					var destination = Path.GetFileName(sql) + "+" + Path.GetFileName(osmFile);
-					File.WriteAllText(destination, result.SerializeToXml());
+					File.WriteAllText(destination, asOsm.SerializeToXml());
 				}
 				else
 				{
 					DoInteractive(translator);
 				}
 			}
+		}
+
+		private static void PrintUsage()
+		{
+			Console.WriteLine("Usage: <source>.{osm|pbf} [<lookup>.json ...] [<transformation>.{sql|sqlite}] [-KeepAllElements|-KeepChildrenElements]");
+			Console.WriteLine("\t-KeepAllElements Include elements from the source which were not returned from the query.");
+			Console.WriteLine("\t-KeepChildrenElements Include elements from the source which were not returned from the query but are children of elements in the query.");
+			Console.WriteLine("Example: StateAddresses.osm StreetSuffixes.json Directions.josn StateAddressesToOsmSchema.sql");
+			Environment.Exit(1);
 		}
 
 		private static void DoInteractive(Translator translator)
@@ -91,35 +103,6 @@ namespace Example
 				Version = version,
 				Generator = generator
 			};
-		}
-
-		private static IEnumerable<OsmGeo> WithChildren(IEnumerable<OsmGeo> parents, IOsmGeoSource possibleChilden)
-		{
-			return parents.SelectMany(p => WithChildren(p, possibleChilden));
-		}
-
-		private static IEnumerable<OsmGeo> WithChildren(OsmGeo parent, IOsmGeoSource possibleChilden)
-		{
-			if (parent is Node) return new[] { parent };
-			else if (parent is Way way)
-			{
-				return way.Nodes.Select(n => possibleChilden.Get(OsmGeoType.Node, n))
-					.Append(parent);
-			}
-			else if (parent is Relation relation)
-			{
-				return relation.Members
-					.SelectMany(m =>
-					{
-						var child = possibleChilden.Get(m.Type, m.Id);
-						return child != null
-							? WithChildren(child, possibleChilden)
-							: Enumerable.Empty<OsmGeo>();
-					})
-					.Where(m => m != null)
-					.Append(parent);
-			}
-			throw new Exception("OsmGeo wasn't a Node, Way or Relation.");
 		}
 	}
 }

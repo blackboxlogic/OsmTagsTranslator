@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using OsmSharp;
+using OsmSharp.Db;
+using OsmSharp.Db.Impl;
 using OsmSharp.Streams;
 using OsmSharp.Tags;
 
@@ -116,6 +118,23 @@ namespace OsmTagsTranslator
 			var transformed = ApplyTags(Source, tagsCollections);
 
 			return transformed;
+		}
+
+		public OsmGeo[] QueryElementsWithChildren(string sql)
+		{
+			var tagsCollections = QueryTags(sql);
+			var transformed = ApplyTags(Source, tagsCollections);
+			var index = OsmSharp.Db.Impl.Extensions.CreateSnapshotDb(new MemorySnapshotDb(Source));
+
+			return WithChildren(transformed, index).ToArray();
+		}
+
+		public OsmGeo[] QueryElementsKeepAll(string sql)
+		{
+			var tagsCollections = QueryTags(sql);
+			var transformed = ApplyTags(Source, tagsCollections);
+
+			return transformed.Union(Source).GroupBy(e => new OsmGeoKey(e)).Select(g => g.First()).ToArray();
 		}
 
 		public void AddLookup(string path)
@@ -304,6 +323,35 @@ namespace OsmTagsTranslator
 			if (DisposeTheSource) ((IDisposable)Source).Dispose();
 			Connection.Dispose();
 			File.Delete(DatabaseFile);
+		}
+
+		private static IEnumerable<OsmGeo> WithChildren(IEnumerable<OsmGeo> parents, IOsmGeoSource possibleChilden)
+		{
+			return parents.SelectMany(p => WithChildren(p, possibleChilden)).GroupBy(e => new OsmGeoKey(e)).Select(g => g.First());
+		}
+
+		private static IEnumerable<OsmGeo> WithChildren(OsmGeo parent, IOsmGeoSource possibleChilden)
+		{
+			if (parent is Node) return new[] { parent };
+			else if (parent is Way way)
+			{
+				return way.Nodes.Select(n => possibleChilden.Get(OsmGeoType.Node, n))
+					.Append(parent);
+			}
+			else if (parent is Relation relation)
+			{
+				return relation.Members
+					.SelectMany(m =>
+					{
+						var child = possibleChilden.Get(m.Type, m.Id);
+						return child != null
+							? WithChildren(child, possibleChilden) // warning, infinite recursion if references have circular members
+							: Enumerable.Empty<OsmGeo>();
+					})
+					.Where(m => m != null)
+					.Append(parent);
+			}
+			throw new Exception("OsmGeo wasn't a Node, Way or Relation.");
 		}
 	}
 }
