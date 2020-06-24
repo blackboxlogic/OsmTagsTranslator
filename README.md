@@ -1,5 +1,5 @@
 # OsmTagsTranslator
-## Do you need to convert third party data into OpenStreetMap tags, but your programming language is clunky? This tool lets you express OSM tag transformations as SQLite queries.
+## Do you need to convert third party data into OpenStreetMap tags, but your object oriented language is clunky? This tool lets you express OSM tag transformations as SQLite queries.
 
 [This file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/SampleE911Addresses.osm) has the address fields from Maine's department of transportation. These tags are not suitable for OSM :unamused:
 ```xml
@@ -92,7 +92,7 @@ The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/mas
 </osm>
 ```
 
-This project is an executable, interactive command line tool, and a nuget package. Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis
+This project is an executable, interactive command line tool, and a [nuget package](https://www.nuget.org/packages/OsmTagsTranslator/). Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis, for example:
 ```SQL
 SELECT POSTAL_COMMUNITY, count(1) FROM Elements GROUP BY POSTAL_COMMUNITY ORDER BY 2 DESC
 ```
