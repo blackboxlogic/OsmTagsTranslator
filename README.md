@@ -73,6 +73,7 @@ JSON files can be loaded as tables with columns "ID" and "Value", like [this one
 	...
 }
 ```
+Provide as many lookup files as needed, like one to convert ["E" to "East"](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/Directions.json) or [add arbitrary other tags](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/PlaceTypes.json).
 
 Run `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm Lookups\Directions.json Lookups\StreetSuffixes.json Lookups\PlaceTypes.json Quieries\E911AddressesToOsmSchema.sql`
 
