@@ -47,9 +47,9 @@ SELECT
 				, ';')
 		END as [ref],
 
-		otherTags.*, -- highway:residential could be {primary, seconday, tertiary, residential}
+		otherTags.* -- highway:residential could be {primary, seconday, tertiary, residential}
 
-		OBJECTID as [e911objectid] -- Remove in POST
+		--OBJECTID as [e911objectid] -- Remove in POST
 	FROM Elements
 	LEFT JOIN Directions as pre
 		ON pre.id = PREDIR
@@ -59,4 +59,4 @@ SELECT
 		ON suf.id = SUFFIX
 	LEFT JOIN RoadClasses as otherTags
 		ON otherTags.id = RDCLASS
-	WHERE highway != 'proposed'
+	WHERE highway != 'proposed' AND xtype = 'Way'

@@ -26,7 +26,6 @@ namespace OsmTagsTranslator
 		private readonly IEnumerable<OsmGeo> Source;
 		private readonly bool DisposeTheSource;
 
-
 		/// <param name="allowMixedCaseKeys">
 		/// Set this TRUE if any of your tag keys have inconsistant capitalization and
 		/// you're ok with them being treated as equivalent
@@ -64,7 +63,7 @@ namespace OsmTagsTranslator
 
 			if (!allowMixedCaseKeys)
 			{
-				var mixedCase = tagGroups.Select(g => g.Select(g => g.Key).Distinct().ToArray()).Where(g => g.Length > 1).ToArray();
+				var mixedCase = tagGroups.Select(gs => gs.Select(g => g.Key).Distinct().ToArray()).Where(g => g.Length > 1).ToArray();
 
 				if (mixedCase.Any())
 				{

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>OsmTagsTranslator</RootNamespace>
     <Version>0.0.1-alpha</Version>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmTagsTranslator</PackageProjectUrl>

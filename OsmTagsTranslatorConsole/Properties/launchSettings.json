@@ -2,7 +2,7 @@
   "profiles": {
     "Example": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Alex\\Desktop\\Maine_E911_Roads-shp\\Maine_E911_Roads.osm\" Lookups\\Directions.json Lookups\\StreetSuffixes.json Lookups\\RoadClasses.json"
+      "commandLineArgs": "\"C:\\Users\\Alex\\Desktop\\Maine_E911_Roads-shp\\Maine_E911_Roads.osm\" Lookups\\Directions.json Lookups\\StreetSuffixes.json Lookups\\RoadClasses.json Queries\\E911RoadsToOsmSchema.sql -KeepChildrenElements"
     }
   }
 }
