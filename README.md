@@ -1,5 +1,5 @@
 # OsmTagsTranslator
-## Do you need to convert third party data into OpenStreetMap tags, but your programming language is clunky? This tool lets you express OSM tag transformations as SQLite queries.
+## Do you need to convert third party data into OpenStreetMap tags, but your object oriented language is clunky? This tool lets you express OSM tag transformations as SQLite queries.
 
 [This file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator.Tests/SampleE911Addresses.osm) has the address fields from Maine's department of transportation. These tags are not suitable for OSM :unamused:
 ```xml
@@ -73,6 +73,7 @@ JSON files can be loaded as tables with columns "ID" and "Value", like [this one
 	...
 }
 ```
+Provide as many lookup files as needed, like one to convert ["E" to "East"](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/Directions.json) or [add arbitrary other tags](https://github.com/blackboxlogic/OsmTagsTranslator/blob/master/OsmTagsTranslator/Lookups/PlaceTypes.json).
 
 Run `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm Lookups\Directions.json Lookups\StreetSuffixes.json Lookups\PlaceTypes.json Quieries\E911AddressesToOsmSchema.sql`
 
@@ -92,7 +93,7 @@ The [resulting file](https://github.com/blackboxlogic/OsmTagsTranslator/blob/mas
 </osm>
 ```
 
-This project is an executable, interactive command line tool, and a nuget package. Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis
+This project is an executable, interactive command line tool, and a [nuget package](https://www.nuget.org/packages/OsmTagsTranslator/). Running in a command prompt without a sql script like `> OsmTagsTranslatorConsole.exe SampleE911Addresses.osm` lets you do data analysis, for example:
 ```SQL
 SELECT POSTAL_COMMUNITY, count(1) FROM Elements GROUP BY POSTAL_COMMUNITY ORDER BY 2 DESC
 ```
