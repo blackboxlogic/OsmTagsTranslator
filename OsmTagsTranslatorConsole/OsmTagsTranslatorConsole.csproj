@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <ApplicationIcon>database.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

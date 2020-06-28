@@ -12,7 +12,7 @@
         "highway": "motorway_link"
     },
     "Secondary": {
-        "highway": "trunk"
+        "highway": "primary"
     },
     "Local": {
         "highway": "residential"
