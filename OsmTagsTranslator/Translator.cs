@@ -44,13 +44,20 @@ namespace OsmTagsTranslator
 		/// ("Name" and "name" will be treated as the same tag). Leave this FALSE (default)
 		/// if you know your elements don't have inconsistant tag key capitalization.
 		/// </param>
-		public Translator(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys = false)
+		public Translator(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys = false,
+			bool doNodes = false, bool doWays = false, bool doRelations = false)
 		{
 			Source = source.ToArray();
 			Connection = CreateDatabase(DatabaseFile);
 			Connection.Open();
-			var columns = GetTags(Source, allowMixedCaseKeys);
-			ImportElements(Source, columns);
+
+			var doAll = !doRelations && !doWays && !doNodes;
+			var toTranslate = source.Where(e => doAll
+				|| (e.Type == OsmGeoType.Node && doNodes)
+				|| (e.Type == OsmGeoType.Way && doWays)
+				|| (e.Type == OsmGeoType.Relation && doRelations));
+			var columns = GetTags(toTranslate, allowMixedCaseKeys);
+			ImportElements(toTranslate, columns);
 		}
 
 		private Dictionary<string, int> GetTags(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys)
@@ -87,25 +94,51 @@ namespace OsmTagsTranslator
 			return new SQLiteConnection(builder.ToString());
 		}
 
-		private void ImportElements(IEnumerable<OsmGeo> source, Dictionary<string, int> tags)
+		private void ImportElements(IEnumerable<OsmGeo> source, Dictionary<string, int> allTags)
 		{
-			var columns = tags
+			var columns = allTags
 				.Prepend(new KeyValuePair<string, int>(ElementKeyType, 8))
 				.Prepend(new KeyValuePair<string, int>(ElementKeyId, 19));
 
 			CreateTable(ElementTableName, columns, 2);
 
-			var count = source.Count();
-			var soFar = 0;
-
 			using (var com = Connection.CreateCommand())
 			{
 				using (var transaction = Connection.BeginTransaction())
 				{
+					var allParameters = new Dictionary<string, IDbDataParameter>();
+					int i = 0;
+
+					foreach (var field in columns)
+					{
+						var parameter = com.CreateParameter();
+						parameter.ParameterName = "@p" + i;
+						com.Parameters.Add(parameter);
+						allParameters.Add(field.Key, parameter);
+						i++;
+					}
+
+					var fieldNames = string.Join(", ", allParameters.Keys.Select(k => $"[{k}]"));
+					var parameterNames = string.Join(", ", allParameters.Values.Select(p => p.ParameterName));
+					com.CommandText = $"INSERT INTO [{ElementTableName}] ({fieldNames}) VALUES ({parameterNames});";
+
 					foreach (var element in source)
 					{
-						InsertRecord(ElementTableName, AsFields(element), com);
+						var fields = AsFields(element);
+
+						foreach (var field in fields)
+						{
+							allParameters[field.Key].Value = field.Value;
+						}
+
+						com.ExecuteNonQuery();
+
+						foreach (var param in allParameters.Values)
+						{
+							param.Value = null;
+						}
 					}
+
 					transaction.Commit();
 				}
 			}

@@ -19,8 +19,12 @@ namespace Example
 
 			if (osmFile == null) PrintUsage();
 
+			var doNodes = args.Contains("-N");
+			var doWays = args.Contains("-W");
+			var doRelations = args.Contains("-R");
+
 			using (var osm = OpenFile(osmFile))
-			using (var translator = new Translator(osm, true))
+			using (var translator = new Translator(osm, true, doNodes, doWays, doRelations))
 			{
 				foreach (var json in args.Where(a => a.EndsWith(".json")))
 				{
@@ -41,7 +45,7 @@ namespace Example
 				}
 				else
 				{
-					DoInteractive(translator);
+					RunInteractive(translator);
 				}
 			}
 		}
@@ -51,28 +55,53 @@ namespace Example
 			Console.WriteLine("Usage: <source>.{osm|pbf} [<lookup>.json ...] [<transformation>.{sql|sqlite}] [-KeepAllElements|-KeepChildrenElements]");
 			Console.WriteLine("\t-KeepAllElements Include elements from the source which were not returned from the query.");
 			Console.WriteLine("\t-KeepChildrenElements Include elements from the source which were not returned from the query but are children of elements in the query.");
+			Console.WriteLine("\t-N only transform nodes.");
+			Console.WriteLine("\t-W only transform ways.");
+			Console.WriteLine("\t-R only transform relations.");
 			Console.WriteLine("Example: StateAddresses.osm StreetSuffixes.json Directions.josn StateAddressesToOsmSchema.sql");
 			Environment.Exit(1);
 		}
 
-		private static void DoInteractive(Translator translator)
+		private static void RunInteractive(Translator translator)
 		{
-			Console.Write("> ");
-			var sql = Console.ReadLine();
+			Console.WriteLine("Ready for instructions:");
+			Console.WriteLine("\t- A SQLite query");
+			Console.WriteLine("\t- A path to a SQLite query file");
+			Console.WriteLine("\t- A path to a json lookup table");
+			Console.WriteLine("\t- \"exit\"");
+			Console.WriteLine();
 
-			while (sql != "")
+			string command = "SELECT Count(*) AS ElementCount FROM Elements";
+			Console.WriteLine(command);
+
+			while (true)
 			{
+				if (command == "exit") return;
+
 				try
 				{
-					foreach (var record in translator.Query(sql))
+					if (command.EndsWith(".json"))
 					{
-						Console.WriteLine(string.Join('\t', record));
+						translator.AddLookup(File.ReadAllText(command));
+						Console.WriteLine("Loaded " + command);
+					}
+					else
+					{
+						if (command.EndsWith(".sql")) command = File.ReadAllText(command);
+
+						var records = translator.Query(command);
+						var display = string.Join(Environment.NewLine, records.Select(record => string.Join('\t', record)));
+						Console.WriteLine(display);
 					}
 				}
-				catch (Exception e) { Console.WriteLine(e); }
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+				}
 
+				Console.WriteLine();
 				Console.Write("> ");
-				sql = Console.ReadLine();
+				command = Console.ReadLine();
 			}
 		}
 
