@@ -39,11 +39,15 @@ namespace OsmTagsTranslator.Tests
 		[TestMethod]
 		public void NonElementQueries()
 		{
-			using (Translator translator = new Translator(new[] { new Node() { Id = -1 }, new Node() { Id = -2 } }))
+			using (Translator translator = new Translator(new[]
+			{
+				new Node() { Id = -1, Tags = new TagsCollection() },
+				new Node() { Id = -2, Tags = new TagsCollection() }
+			}))
 			{
 				var query = @"select count(1) as count from elements where xid = -1";
-				var result = translator.Query(query);
-				CollectionAssert.AreEqual(new[] { "count", "1" }, result.SelectMany(s => s).ToArray());
+				var result = translator.Query(query).SelectMany(s => s).ToArray();
+				CollectionAssert.AreEqual(new[] { "count", "1" }, result);
 			}
 		}
 
