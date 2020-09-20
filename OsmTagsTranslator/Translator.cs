@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -13,7 +11,7 @@ using OsmSharp.Tags;
 
 namespace OsmTagsTranslator
 {
-	public class Translator : IDisposable
+	public class Translator : Database, IDisposable
 	{
 		private const string LookupId = "ID";
 		private const string LookupValue = "Value";
@@ -22,7 +20,6 @@ namespace OsmTagsTranslator
 		private const string ElementTableName = "Elements";
 		private const string DatabaseFile = "OsmSql.sqlite";
 
-		private readonly IDbConnection Connection;
 		private readonly IEnumerable<OsmGeo> Source;
 		private readonly bool DisposeTheSource;
 
@@ -46,17 +43,17 @@ namespace OsmTagsTranslator
 		/// </param>
 		public Translator(IEnumerable<OsmGeo> source, bool allowMixedCaseKeys = false,
 			bool doNodes = false, bool doWays = false, bool doRelations = false)
+			: base(DefaultDatabaseFile, true)
 		{
-			Source = source.ToArray();
-			Connection = CreateDatabase(DatabaseFile);
-			Connection.Open();
+			Source = source.Where(ee => ee.Tags != null).ToArray();
 
 			var doAll = !doRelations && !doWays && !doNodes;
-			var toTranslate = source.Where(e => doAll
+			var toTranslate = Source.Where(e => doAll
 				|| (e.Type == OsmGeoType.Node && doNodes)
 				|| (e.Type == OsmGeoType.Way && doWays)
 				|| (e.Type == OsmGeoType.Relation && doRelations));
 			var columns = GetTags(toTranslate, allowMixedCaseKeys);
+
 			ImportElements(toTranslate, columns);
 		}
 
@@ -81,19 +78,6 @@ namespace OsmTagsTranslator
 			return tagGroups.ToDictionary(g => g.Key, g => Math.Max(1, g.Max(t => t.Value.Length)));
 		}
 
-		private static SQLiteConnection CreateDatabase(string path)
-		{
-			SQLiteConnection.CreateFile(path);
-			var builder = new SQLiteConnectionStringBuilder
-			{
-				DataSource = path,
-				Version = 3,
-				SyncMode = SynchronizationModes.Off,
-				JournalMode = SQLiteJournalModeEnum.Off
-			};
-			return new SQLiteConnection(builder.ToString());
-		}
-
 		private void ImportElements(IEnumerable<OsmGeo> source, Dictionary<string, int> allTags)
 		{
 			var columns = allTags
@@ -102,46 +86,7 @@ namespace OsmTagsTranslator
 
 			CreateTable(ElementTableName, columns, 2);
 
-			using (var com = Connection.CreateCommand())
-			{
-				using (var transaction = Connection.BeginTransaction())
-				{
-					var allParameters = new Dictionary<string, IDbDataParameter>();
-					int i = 0;
-
-					foreach (var field in columns)
-					{
-						var parameter = com.CreateParameter();
-						parameter.ParameterName = "@p" + i;
-						com.Parameters.Add(parameter);
-						allParameters.Add(field.Key, parameter);
-						i++;
-					}
-
-					var fieldNames = string.Join(", ", allParameters.Keys.Select(k => $"[{k}]"));
-					var parameterNames = string.Join(", ", allParameters.Values.Select(p => p.ParameterName));
-					com.CommandText = $"INSERT INTO [{ElementTableName}] ({fieldNames}) VALUES ({parameterNames});";
-
-					foreach (var element in source)
-					{
-						var fields = AsFields(element);
-
-						foreach (var field in fields)
-						{
-							allParameters[field.Key].Value = field.Value;
-						}
-
-						com.ExecuteNonQuery();
-
-						foreach (var param in allParameters.Values)
-						{
-							param.Value = null;
-						}
-					}
-
-					transaction.Commit();
-				}
-			}
+			InsertRecords(ElementTableName, columns.Select(f => f.Key), source.Select(AsFields));
 		}
 
 		public OsmGeo[] QueryElements(string sql)
@@ -198,14 +143,12 @@ namespace OsmTagsTranslator
 				.Prepend(new KeyValuePair<string, int>(LookupId, keyLength));
 			CreateTable(name, columns);
 
-			using (var com = Connection.CreateCommand())
+			foreach (var record in lookup)
 			{
-				foreach (var record in lookup)
-				{
-					record.Value.Add(LookupId, record.Key);
-					InsertRecord(name, record.Value, com);
-				}
+				record.Value.Add(LookupId, record.Key);
 			}
+
+			InsertRecords(name, columns.Select(kvp => kvp.Key), lookup.Values);
 		}
 
 		public void AddLookup(string name, Dictionary<string, string> lookup)
@@ -217,51 +160,14 @@ namespace OsmTagsTranslator
 			}.OrderBy(kvp => kvp.Key);
 
 			CreateTable(name, columns);
-			using (var com = Connection.CreateCommand())
-			{
-				foreach (var record in lookup)
-				{
-					var fields = new Dictionary<string, string>()
+
+			var records = lookup.Select(record => new Dictionary<string, string>()
 				{
 					{ LookupId, record.Key },
 					{ LookupValue, record.Value }
-				};
-					InsertRecord(name, fields, com);
-				}
-			}
-		}
+				});
 
-		private void CreateTable(string name, IEnumerable<KeyValuePair<string, int>> columns, int keyCount = 1)
-		{
-			using (var com = Connection.CreateCommand())
-			{
-				var columnCode = string.Join(", ", columns.Select(k => $"[{k.Key}] varchar({k.Value}) COLLATE NOCASE"));
-				var primaryKey = string.Join(", ", columns.Take(keyCount).Select(kvp => "[" + kvp.Key + "]"));
-				com.CommandText = $"CREATE TABLE [{name}] ({columnCode}, PRIMARY KEY({primaryKey}))";
-				com.ExecuteNonQuery();
-			}
-		}
-
-		private void InsertRecord(string table, Dictionary<string, string> fields, IDbCommand com)
-		{
-			var keys = new List<string>();
-			var values = new List<string>();
-			int i = 0;
-
-			com.Parameters.Clear();
-			foreach (var field in fields)
-			{
-				var parameter = com.CreateParameter();
-				parameter.ParameterName = "@p" + i;
-				parameter.Value = field.Value;
-				com.Parameters.Add(parameter);
-				values.Add($"@p" + i);
-				keys.Add($"[{field.Key}]");
-				i++;
-			}
-
-			com.CommandText = $"INSERT INTO [{table}] ({string.Join(", ", keys)}) VALUES ({string.Join(", ", values)});";
-			com.ExecuteNonQuery();
+			InsertRecords(name, columns.Select(kvp => kvp.Key), records);
 		}
 
 		private Dictionary<string, string> AsFields(OsmGeo element)
@@ -294,39 +200,6 @@ namespace OsmTagsTranslator
 			return results;
 		}
 
-		// first record is column names
-		public IEnumerable<string[]> Query(string sql)
-		{
-			using (var com = Connection.CreateCommand())
-			{
-				com.CommandText = sql;
-				using (IDataReader reader = com.ExecuteReader())
-				{
-					yield return Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
-
-					while (reader.Read())
-					{
-						yield return GetValues(reader, reader.FieldCount);
-					}
-				}
-			}
-		}
-
-		private static string[] GetValues(IDataReader reader, int fieldCount)
-		{
-			var values = new object[fieldCount];
-			reader.GetValues(values);
-			var strings = new string[fieldCount];
-
-			for (int i = 0; i < fieldCount; i++)
-			{
-				if (values[i] is string s) strings[i] = s;
-				else if (values[i] is long num) strings[i] = num.ToString();
-			}
-
-			return strings;
-		}
-
 		private static OsmGeo[] ApplyTags(IEnumerable<OsmGeo> elements,
 			Dictionary<OsmGeoKey, TagsCollection> tagsCollections)
 		{
@@ -350,10 +223,10 @@ namespace OsmTagsTranslator
 			return groups.ToDictionary(g => g.Key, g => g.ToArray());
 		}
 
-		public void Dispose()
+		public new void Dispose()
 		{
 			if (DisposeTheSource) ((IDisposable)Source).Dispose();
-			Connection.Dispose();
+			base.Dispose();
 			File.Delete(DatabaseFile);
 		}
 
