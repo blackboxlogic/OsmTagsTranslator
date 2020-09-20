@@ -4,24 +4,23 @@ using System.IO;
 using System.Linq;
 using OsmSharp;
 using OsmSharp.API;
-using OsmSharp.IO.Xml;
 using OsmSharp.Streams;
 using OsmTagsTranslator;
 
 namespace Example
 {
-	class Program
+	public class Program
 	{
-		static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			Console.WriteLine("Starting...");
 			var osmFile = args.SingleOrDefault(a => a.EndsWith(".osm") || a.EndsWith(".pbf"));
 
 			if (osmFile == null) PrintUsage();
 
-			var doNodes = args.Contains("-N");
-			var doWays = args.Contains("-W");
-			var doRelations = args.Contains("-R");
+			var doNodes = args.Contains("-N", StringComparer.OrdinalIgnoreCase);
+			var doWays = args.Contains("-W", StringComparer.OrdinalIgnoreCase);
+			var doRelations = args.Contains("-R", StringComparer.OrdinalIgnoreCase);
 
 			using (var osm = OpenFile(osmFile))
 			using (var translator = new Translator(osm, true, doNodes, doWays, doRelations))
@@ -41,7 +40,7 @@ namespace Example
 							: translator.QueryElements(File.ReadAllText(sql));
 					var asOsm = AsOsm(elements);
 					var destination = Path.GetFileName(sql) + "+" + Path.GetFileName(osmFile);
-					File.WriteAllText(destination, asOsm.SerializeToXml());
+					SaveFile(asOsm, destination);
 				}
 				else
 				{
@@ -85,7 +84,7 @@ namespace Example
 						translator.AddLookup(File.ReadAllText(command));
 						Console.WriteLine("Loaded " + command);
 					}
-					else
+					else if (command != "")
 					{
 						if (command.EndsWith(".sql")) command = File.ReadAllText(command);
 
@@ -111,24 +110,42 @@ namespace Example
 
 			if (extension.Equals(".pbf", StringComparison.OrdinalIgnoreCase))
 			{
-				// Warning: IDisposable not disposed.
-				return new OsmSharp.Streams.PBFOsmStreamSource(new FileInfo(path).OpenRead());
+				return new PBFOsmStreamSource(new FileInfo(path).OpenRead());
 			}
 			else if (extension.Equals(".osm", StringComparison.OrdinalIgnoreCase))
 			{
 				return new XmlOsmStreamSource(File.OpenRead(path));
 			}
 
-			throw new Exception("Must be .pbf or .osm");
+			throw new Exception("Source file must be .pbf or .osm");
 		}
 
-		private static Osm AsOsm(IEnumerable<OsmGeo> elements, string generator = null, double? version = .6)
+		private static void SaveFile(Osm osm, string path)
 		{
+			var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Osm));
+			var settings = new System.Xml.XmlWriterSettings();
+			settings.OmitXmlDeclaration = true;
+			settings.Indent = false;
+			settings.NewLineChars = string.Empty;
+			var emptyNamespace = new System.Xml.Serialization.XmlSerializerNamespaces();
+			emptyNamespace.Add(string.Empty, string.Empty);
+
+			using (var resultStream = new FileStream(path, FileMode.Create))
+			using (var stringWriter = System.Xml.XmlWriter.Create(resultStream, settings))
+			{
+				serializer.Serialize(stringWriter, osm, emptyNamespace);
+			}
+		}
+
+		private static Osm AsOsm(IEnumerable<OsmGeo> elements, string generator = "OsmTagsTranslator", double? version = .6)
+		{
+			var e = elements.GroupBy(e => e.Type).ToDictionary(g => g.Key, g => g.ToArray());
+
 			return new Osm()
 			{
-				Nodes = elements.OfType<Node>().ToArray(),
-				Ways = elements.OfType<Way>().ToArray(),
-				Relations = elements.OfType<Relation>().ToArray(),
+				Nodes = e.TryGetValue(OsmGeoType.Node, out var nodes) ? (Node[])nodes : new Node[0],
+				Ways = e.TryGetValue(OsmGeoType.Way, out var ways) ? (Way[])ways : new Way[0],
+				Relations = e.TryGetValue(OsmGeoType.Relation, out var relations) ? (Relation[])relations : new Relation[0],
 				Version = version,
 				Generator = generator
 			};
