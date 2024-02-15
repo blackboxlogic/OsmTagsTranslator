@@ -17,6 +17,10 @@ namespace OsmTagsTranslator
 		private const string LookupValue = "Value";
 		private const string ElementKeyId = "xID";
 		private const string ElementKeyType = "xType";
+		private const string ElementVersion = "xVersion";
+		private const string ElementUser = "xUser";
+		private const string EditDate = "xDate";
+
 		private const string ElementTableName = "Elements";
 		private const string DatabaseFile = "OsmSql.sqlite";
 
@@ -82,7 +86,10 @@ namespace OsmTagsTranslator
 		{
 			var columns = allTags
 				.Prepend(new KeyValuePair<string, int>(ElementKeyType, 8))
-				.Prepend(new KeyValuePair<string, int>(ElementKeyId, 19));
+				.Prepend(new KeyValuePair<string, int>(ElementKeyId, 19))
+				.Append(new KeyValuePair<string, int>(ElementVersion, 3))
+				.Append(new KeyValuePair<string, int>(ElementUser, 30))
+				.Append(new KeyValuePair<string, int>(EditDate, 30));
 
 			CreateTable(ElementTableName, columns, 2);
 
@@ -118,21 +125,37 @@ namespace OsmTagsTranslator
 		{
 			JsonSerializer serializer = new JsonSerializer();
 
+			// Attempt to read the file as string[], then dictionary<string,string>, then dictionary<string,dictionary<string,string>>
 			try
 			{
 				using (StreamReader file = File.OpenText(path))
 				{
-					var lookup = serializer.Deserialize<Dictionary<string, string>>(new JsonTextReader(file));
+					var lookup = serializer.Deserialize<string[]>(new JsonTextReader(file));
 					AddLookup(Path.GetFileNameWithoutExtension(path), lookup);
 				}
 			}
-			catch
+			catch (JsonReaderException)
 			{
-				using (StreamReader file = File.OpenText(path))
+				try
 				{
-					var lookup = serializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(new JsonTextReader(file));
-					AddLookup(Path.GetFileNameWithoutExtension(path), lookup);
+					using (StreamReader file = File.OpenText(path))
+					{
+						var lookup = serializer.Deserialize<Dictionary<string, string>>(new JsonTextReader(file));
+						AddLookup(Path.GetFileNameWithoutExtension(path), lookup);
+					}
 				}
+				catch (JsonReaderException)
+				{
+					using (StreamReader file = File.OpenText(path))
+					{
+						var lookup = serializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(new JsonTextReader(file));
+						AddLookup(Path.GetFileNameWithoutExtension(path), lookup);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				throw;
 			}
 		}
 
@@ -170,11 +193,37 @@ namespace OsmTagsTranslator
 			InsertRecords(name, columns.Select(kvp => kvp.Key), records);
 		}
 
-		private Dictionary<string, string> AsFields(OsmGeo element)
+		public void AddLookup(string name, string[] lookup)
+		{
+			// Create a single column (ID:string) table with these values.
+			var columns = new Dictionary<string, int>()
+			{
+				{ LookupId, lookup.Max(k => k.Length) }
+			}.OrderBy(kvp => kvp.Key);
+
+			CreateTable(name, columns);
+
+			var records = lookup.Select(record => new Dictionary<string, string>()
+				{
+					{ LookupId, record }
+				});
+
+			InsertRecords(name, columns.Select(kvp => kvp.Key), records);
+		}
+
+		private Dictionary<string, string> AsFields(OsmGeo element, bool includeMetaDataFields = false)
 		{
 			var fields = element.Tags?.ToDictionary(t => t.Key, t => t.Value) ?? new Dictionary<string, string>();
 			fields.Add(ElementKeyId, element.Id.ToString());
 			fields.Add(ElementKeyType, element.Type.ToString());
+
+			if(includeMetaDataFields)
+			{
+				fields.Add(ElementVersion, element.Version.ToString());
+				fields.Add(ElementUser, element.UserName);
+				fields.Add(EditDate, element.TimeStamp?.ToString());
+			}
+
 			return fields;
 		}
 

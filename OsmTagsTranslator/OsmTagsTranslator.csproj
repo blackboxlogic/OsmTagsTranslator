@@ -4,12 +4,12 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>OsmTagsTranslator</RootNamespace>
-    <Version>0.0.1-alpha-2</Version>
+    <Version>0.0.1-alpha-3</Version>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmTagsTranslator</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>OSM;OpenStreetMap</PackageTags>
     <Description>Use SQLite scripts to transform OSM element tags. Profide an element source, lookup tables, and your sqlite query. Get back elements with transformed tags.</Description>
-    <PackageReleaseNotes>Alpha</PackageReleaseNotes>
+    <PackageReleaseNotes>Improved support for command line interactive mode (REPL).</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmTagsTranslator</RepositoryUrl>
     <SignAssembly>false</SignAssembly>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
